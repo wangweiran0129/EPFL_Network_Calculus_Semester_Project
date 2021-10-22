@@ -31,7 +31,7 @@ class GGNN(nn.Module):
             nn.LeakyReLU())
 
         # # Memory Unit
-        self.gru = pyg_nn.GatedGraphConv(hidden_dim, 1)
+        self.gru = pyg_nn.GatedGraphConv(hidden_dim, 2, aggr= "mean")
         #
         # # Edge attention
         self.edge_attention = nn.Sequential(
@@ -64,21 +64,45 @@ class GGNN(nn.Module):
     def forward(self, data, adj):
         # unpacking the data object
         x, edge_index = data.x[:, :-1], data.edge_index
+        
+        #print("edge index shape")
+        #print(edge_index.shape)
+        #print(edge_index)
+        #print(edge_index[:,0])
+        
+        edge_weight= torch.zeros(edge_index.shape[1])
+        #print(edge_weight)
+        
+
 
         x = self.init_layer(x)
-        x = self.gru(x, edge_index)
-
+        
+        #x = self.gru(x, edge_index)
         for i in range(self.unrolls):
             x = self.gru(x, edge_index)
-            # Prepare the input for the edge attention mechanism
+        # Prepare the input for the edge attention mechanism
             d = prepare_edge_attention_input(x)
 
-            # Run the edge attention layer and squeeze to remove the last dimension
+        # Run the edge attention layer and squeeze to remove the last dimension
             coeffs = self.edge_attention(d).squeeze()
             zero_vec = torch.zeros_like(coeffs)
             coeffs = torch.where(adj == 1, coeffs, zero_vec)
-            # Matrix multiplication of the edge coefficients with the feature matrix
             x = coeffs @ x
+        
+        
+        
+        #for i in range(edge_index.shape[1]):
+        #    u= edge_index[0][i]
+        #    v= edge_index[1][i]
+        #    weight= coeffs[u][v]
+        #    edge_weight[i]= weight
+            
+            
+        
+        
+        # Matrix multiplication of the edge coefficients with the feature matrix
+        
+        
 
         x = self.out(x)
         out1 = self.out1(x)
@@ -112,7 +136,7 @@ def train_model(train_graphs, train_targets, test_graphs, test_targets, learning
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
     # Build the model
-    model = GGNN(9, 96, 1, dropout=dropout)
+    model = GGNN(9, 96, 2, dropout=dropout)
 
     opt = torch.optim.SGD(model.parameters(), lr=learning_rate)
     model = model.to(device)
@@ -172,7 +196,8 @@ def train_model(train_graphs, train_targets, test_graphs, test_targets, learning
 
             # update the parameters
             opt.step()
-            break
+            
+            
 
         losses_per_epoch.append(np.mean(losses_train))
 
@@ -181,13 +206,12 @@ def train_model(train_graphs, train_targets, test_graphs, test_targets, learning
         acc_deepfp, acc_deepfp4 = evaluate(model, test_data, device)
         # accuracies_per_epoch.append(acc)
         print("********* Lossses in training ******")
+        
 
         tqdm.write(
             f"{epoch:3d} | loss={np.mean(losses_train):.2e}  | test_accuracy_deepfp= {acc_deepfp} | test_accuracy_deepfp4= {acc_deepfp4}")
-        break
+        
 
-        # tqdm.write(
-        #    f"{epoch:3d} | loss={np.mean(losses_train):.2e}  | train_accuracy_deepfp ={training_acc_deepfp} | train_accuracy_deepfp4= {training_acc_deepfp4} | test_accuracy_deepfp= {acc_deepfp} | test_accuracy_deepfp4= {acc_deepfp4}")
     return losses_per_epoch, accuracies_per_epoch, model
 
 
@@ -208,7 +232,8 @@ def evaluate(model, test_data, device, k=1):
         accurate_deepfp, accurate_deepfp4 = accurate_deepFP_deepFP4(out1, out2, graph, targets)
         correct_predicted_deepfp = correct_predicted_deepfp + accurate_deepfp
         correct_predicted_deepfp4 = correct_predicted_deepfp4 + accurate_deepfp4
-        break
+        
+        
 
     # for each graph in the dataset, a correct classification means that the model outputs the correct flow
     # prolongations for all cross flows

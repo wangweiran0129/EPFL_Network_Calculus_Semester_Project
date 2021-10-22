@@ -92,6 +92,7 @@ def valid_prolongation(G, flow, s, flow_paths, foi_id):
 
 # Creates a graph from a base graph G with prolongation nodes depending on the flow of interest foi
 def prolong_graph(G_in, foi_id, flow_paths):
+    
     G = deepcopy(G_in)
 
     foi_node_id = "f_" + str(foi_id)
@@ -121,3 +122,12 @@ def prolong_graph(G_in, foi_id, flow_paths):
     return G, flow_dict, ids
 
 
+
+class prolongation:
+    
+    def __init__(self, flow, server):
+        
+        self.flow= flow
+        self.server= server
+        
+        

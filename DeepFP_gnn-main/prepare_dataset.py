@@ -9,12 +9,12 @@ import pickle
 
 
 # The inputs are the graph G, unique identifiers for each node, prolongation nodes if its for training
-def graph2torch(G, node_ids, prolongation=None, test=False):
+def graph2torch(G, node_ids):
     # node features : the paper used 11 input dimension (corrected after asking the author). We use 9 features for
     # training but we add one more case in the feature vector to store the flow corresponding to each prolongation node
     x = torch.zeros((len(G.nodes), 10))
 
-    # outcome of node prediction : NEED TO Fill for training: 1 or 0 for prolongation nodes
+    # will not be needed here as multiple targets can exist
     y = torch.zeros(G.number_of_nodes(), dtype=torch.float)
 
     # As the loss function depends only on prolongation nodes, we use this to mask the other nodes
@@ -64,10 +64,6 @@ def graph2torch(G, node_ids, prolongation=None, test=False):
         edge_index[1, i] = node_ids[src]
         i += 1
 
-    # Add target nodes labels : 1 if the prolongation node is the sink , 0 otherwise
-    if test:
-        for pro_node in prolongation:
-            y[node_ids[pro_node]] = 1
 
     graph = Data(x=x, y=y, edge_index=edge_index, mask=prolongation_mask)
 
@@ -90,7 +86,7 @@ def get_best_deborahfp_combination(flow):
     return min_combinations
 
 
-# Returns a list of Data object of the dataset, each one is a graph
+# a method to read the network models and extract the graphs , and save them in pickle files
 def prepare_dataset(filename, train, to_pickle=True):
     graphs = []
     targets = []
@@ -107,11 +103,12 @@ def prepare_dataset(filename, train, to_pickle=True):
                 # create version of a graph where the current flow is the flow of interest (Algorithm 2 of the paper)
                 G_f, pro_dict, node_ids = prolong_graph(G, flow.id, flow_paths)
 
+                # best combinations are the ones that yield minimum delay bound, multiple optimal combinations can exist
                 best_combinations = get_best_deborahfp_combination(flow)
 
                 flows_that_can_be_prolonged = set(pro_dict.keys())
 
-                grph = graph2torch(G_f, prolongation=None, node_ids=node_ids, test=False)
+                grph = graph2torch(G_f, node_ids=node_ids)
 
                 # Append the created graph to the dataset
                 graphs.append(grph)
@@ -119,10 +116,12 @@ def prepare_dataset(filename, train, to_pickle=True):
                 # worth prolonging if deborah FP gives tighter delay bound than Deborah
                 worth_prolonging = flow.deborahfp.delay_bound < flow.deborah.delay_bound
                 foi_index = node_ids["f_" + str(flow.id)]
+                
+                possible_targets = []
 
                 # Equally optimal targets can exist: this is implementing Equation 11 in the paper
                 for comb in best_combinations:
-                    possible_targets = []
+                    
                     # Prolongation nodes to activate
                     comb_nodes = ["p" + str(k) + "_" + str(v) for k, v in comb.items()]
 
@@ -135,8 +134,9 @@ def prepare_dataset(filename, train, to_pickle=True):
 
                     y = torch.zeros(G_f.number_of_nodes(), dtype=torch.float)
                     y[foi_index] = worth_prolonging
-                    for pro_node in comb_nodes:
-                        y[node_ids[pro_node]] = 1
+                    
+                    prolongation_nodes_indices= torch.tensor([node_ids[pro_node] for pro_node in comb_nodes])
+                    y.index_fill_(dim=0, index= prolongation_nodes_indices, value= 1)
                     possible_targets.append(y)
 
                 targets.append(possible_targets)
@@ -164,45 +164,6 @@ def prepare_dataset(filename, train, to_pickle=True):
 
     return graphs, targets
 
-
-# still a problem to figure out if all combinations are added to the test dataset seperately as independent graphs
-def prepare_test_dataset(filename):
-    dataset = []
-
-    # For each network in the file
-    for network in pbzlib.open_pbz(filename):
-
-        # Get the base graph i.e server nodes, flow nodes, and links between them
-        G, flow_paths = net2basegraph(network)
-
-        for flow in network.flow:
-
-            if flow.HasField("deborahfp"):
-                flow_id = flow.id
-                worth_prolonging = flow.deborahfp.delay_bound < flow.deborah.delay_bound
-
-                G_f, pro_dict, node_ids = prolong_graph(G, flow_id, flow_paths)
-                foi_index = node_ids["f_" + str(flow.id)]
-                best_combinations = get_best_deborahfp_combination(flow)
-
-                flows_that_can_be_prolonged = set(pro_dict.keys())
-
-                for comb in best_combinations:
-                    # Prolongation nodes to activate
-                    comb_nodes = ["p" + str(k) + "_" + str(v) for k, v in comb.items()]
-
-                    prolonged = set(comb.keys())
-
-                    k = flows_that_can_be_prolonged.difference(prolonged)
-                    comb_nodes.extend(list(map(lambda x: "p" + str(x) + "_" + str(flow_paths[x][-1]), k)))
-                    graph = graph2torch(G_f, prolongation=comb_nodes, node_ids=node_ids, test=True)
-                    graph.y[foi_index] = worth_prolonging
-
-                    dataset.append(graph)
-
-    print(len(dataset))
-
-    return dataset
 
 
 def main(filename):
