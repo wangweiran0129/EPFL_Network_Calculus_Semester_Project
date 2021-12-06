@@ -1,0 +1,67 @@
+{\rtf1\ansi\ansicpg1252\cocoartf2580
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fmodern\fcharset0 Courier;}
+{\colortbl;\red255\green255\blue255;\red0\green0\blue0;\red255\green255\blue255;}
+{\*\expandedcolortbl;;\cssrgb\c0\c0\c0;\cssrgb\c100000\c100000\c100000;}
+\paperw11900\paperh16840\margl1440\margr1440\vieww35340\viewh19300\viewkind0
+\deftab720
+\pard\pardeftab720\partightenfactor0
+
+\f0\fs28 \cf2 \cb3 \expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec2 (GGNN(\
+   (init_layer): Sequential(\
+     (0): Linear(in_features=9, out_features=96, bias=True)\
+     (1): LeakyReLU(negative_slope=0.01)\
+   )\
+   (gru): GatedGraphConv(96, num_layers=1)\
+   (edge_attention): Sequential(\
+     (0): Linear(in_features=192, out_features=96, bias=True)\
+     (1): Sigmoid()\
+     (2): Linear(in_features=96, out_features=1, bias=True)\
+     (3): Sigmoid()\
+   )\
+   (out): Sequential(\
+     (0): Linear(in_features=96, out_features=96, bias=True)\
+     (1): LeakyReLU(negative_slope=0.01)\
+     (2): Linear(in_features=96, out_features=96, bias=True)\
+     (3): LeakyReLU(negative_slope=0.01)\
+   )\
+   (out1): Sequential(\
+     (0): Linear(in_features=96, out_features=1, bias=True)\
+     (1): Sigmoid()\
+   )\
+   (out2): Sequential(\
+     (0): Linear(in_features=96, out_features=1, bias=True)\
+     (1): Sigmoid()\
+   )\
+ ),\
+ [0.5881255768119688,\
+  0.2988683057360322,\
+  0.38702429139677136,\
+  0.5501158409350666,\
+  0.7908454190537795,\
+  0.4749144765447267,\
+  0.3653041992134632,\
+  0.44023986093288153,\
+  0.3870560317713254,\
+  0.28796613158699275,\
+  0.26322816760022877,\
+  0.2624143708683669,\
+  0.2501971738313883,\
+  0.24647136029060163,\
+  0.24820533019058696,\
+  0.24430228191809514,\
+  0.5891018090835649,\
+  0.8800485093109017,\
+  0.8798071816936275,\
+  0.8798398752528903,\
+  0.8796454789078738,\
+  0.879494867288341,\
+  0.8793510351843156,\
+  0.8796164659187392,\
+  0.8794563535858153,\
+  0.8794534333041908,\
+  0.8794572701768761,\
+  0.8793824495353464,\
+  0.8793814552568954,\
+  0.8786344022326347])\
+}
