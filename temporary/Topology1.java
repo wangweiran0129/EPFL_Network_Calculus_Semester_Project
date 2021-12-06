@@ -76,8 +76,8 @@ public class Topology1 {
         ArrayList<String> flow_id = new ArrayList<String>();
         ArrayList<String> arrival_rate = new ArrayList<String>();
         ArrayList<String> flow_burst = new ArrayList<String>();
-        ArrayList<String> flow_src = new ArrayList<String>();
-        ArrayList<String> flow_dest = new ArrayList<String>();
+        ArrayList<String> flow_src = new ArrayList<String>(); // flow_src stores all the sources in one network
+        ArrayList<String> flow_dest = new ArrayList<String>(); // flow_dest stores all the destinations in one network
         ArrayList<String> flow_of_interest_temp = new ArrayList<String>(); // foi ids are stored here
         ArrayList<ArrivalCurve> arrival_curve = new ArrayList<ArrivalCurve>();
 
@@ -163,11 +163,6 @@ public class Topology1 {
                     flow_of_interest_temp.add(flow[2]);
                 }
                 flow_counter = flow_counter + 1;
-
-                for (int i=0; i<8; i++){
-                    System.out.println("flow " + i + ": " + flow[i]);
-                }
-
             }
         } catch (FileNotFoundException e) {
             e.printStackTrace();
@@ -216,9 +211,7 @@ public class Topology1 {
             while ((line = brFlow.readLine()) != null) {
                 // use comma as separator
                 String[] flow = line.split(csvSplitBy);
-                // src_id & dest_id vary according to different foi(s)
-                // flow5 is the source
-                // flow6 is the destination
+                // dest_id vary according to different foi(s)
                 int src_id = Integer.parseInt(flow[5]);
                 flow_src.add(server_id.get(src_id));
                 int dest_id = Integer.parseInt(flow[6]);
@@ -235,6 +228,31 @@ public class Topology1 {
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
+            }
+        }
+
+        // System.out.println("flow src : " + flow_src);
+        // System.out.println("flow dest : " + flow_dest);
+        
+        // src > dest -> backward -> 0
+        // src < dest -> forward -> 1
+        // set a flag to detect the whether it's feed-forward or back-forward
+        int flag = 0;
+        for (int i = 0; i < flow_size; i++) {
+            int src = Integer.parseInt(flow_src.get(i));
+            int dest = Integer.parseInt(flow_dest.get(i));
+            if (src == dest) {
+                continue;
+            }
+            // src > dest -> backward -> 0
+            else if (src > dest) {
+                flag = 0;
+                break;
+            }
+            // src < dest -> forward -> 1
+            else {
+                flag = 1;
+                break;
             }
         }
 
@@ -260,12 +278,20 @@ public class Topology1 {
                     serverId.add(sg.addServer(service_curve.get(k)));
                 }
 
-                // Question Here!!!
-                // Should I consider the order of prolongatin?
-                // addTurn : Connect the Servers
-                System.out.println("server_id's length : " + server_id.size());
-                for (int k = 0; k < server_id.size()-1; k++) {
-                    sg.addTurn(serverId.get(k), serverId.get(k+1));
+                if (flag == 1) {
+                    System.out.println("The servers are connected by forward");
+                    // addTurn : Connect the Servers
+                    for (int k = 0; k < server_id.size()-1; k++) {
+                        sg.addTurn(serverId.get(k), serverId.get(k+1));
+                    }
+                }
+
+                if (flag == 0) {
+                    System.out.println("The servers are connected by backward");
+                    // addTurn : Connect the Servers
+                    for (int k = server_id.size()-1; k > 0; k--) {
+                        sg.addTurn(serverId.get(k), serverId.get(k-1));
+                    }
                 }
 
                 // addFlow : Connect the Flow with Servers
