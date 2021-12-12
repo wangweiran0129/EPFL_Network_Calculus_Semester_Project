@@ -42,22 +42,25 @@ def source_sink_network(server_number):
             flow.id = i
             flow.rate = 5/server_size
             flow.burst = 10
+            # add flow path
             source = flows_src[i]
             destination = flows_dest[i]
             for FlowPath in range(source, destination+1):
                 flow.path.append(FlowPath)
-            
-            
-    with write_pbz("output.pbz", "tests/source_sink.descr") as w:
+            # add flow of interest
+            flow.deborahfp.delay_bound = 1
+
+    with write_pbz("source-sink.pbz", "tests/source_sink.descr") as w:
         for obj in objs:
             w.write(obj)
 
+
 def main():
-    server_number = 3
+    server_number = 25
     for i in range(server_number):
         source_sink_network(server_number)
     
-    for network in open_pbz("output.pbz"):
+    for network in open_pbz("source-sink.pbz"):
         print(network)
 
 if __name__ == "__main__":
