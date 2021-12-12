@@ -6,54 +6,59 @@ from tests import source_sink_pb2
 
 def source_sink_network(server_number):
 
-    objs = [source_sink_pb2.Network(id=0)]
-    server = objs[0].server.add()
-    server.id = 0
-    server.rate = 10
-    server.latency = 0.001
-    flow = objs[0].flow.add()
-    flow.id = 0
-    flow.rate = 5
-    flow.burst = 10
-    flow.path.append(0)
+    # objs store the network information
+    objs = []
 
+    for topology_id in range(server_number):
+        server_size = topology_id + 1
+        flow_size = 2 * server_size - 1
+        flows_src = []
+        flows_dest = []
 
-    objs.append(source_sink_pb2.Network(id=1))
-    server = objs[1].server.add()
-    server.id = 0
-    server.rate = 10
-    server.latency = 0.001
-    server = objs[1].server.add()
-    server.id = 1
-    server.rate = 10
-    server.latency = 0.001
-    flow = objs[1].flow.add()
-    flow.id = 0
-    flow.rate = 5
-    flow.burst = 10
-    flow.path.append(0)
-    flow = objs[1].flow.add()
-    flow.id = 1
-    flow.rate = 5
-    flow.burst = 10
-    flow.path.append(0)
-    flow.path.append(1)
-    flow = objs[1].flow.add()
-    flow.id = 2
-    flow.rate = 5
-    flow.burst = 10
-    flow.path.append(1)
+        objs.append(source_sink_pb2.Network(id=topology_id))
 
+        # add server information
+        for i in range(server_size):
+            server = objs[topology_id].server.add()
+            server.id = i
+            server.rate = 10
+            server.latency = 0.001
+        
+        # define the src & dest of a flow
+        # 1st category : source is the first server and the destination changes
+        for dest in range(server_size):
+            flows_src.append(0)
+            flows_dest.append(dest)
+            
+        # 2nd category : destination is the last server and sources change
+        # exclude src = 0, dest = servers_size-1 which has been calculated before in the first category
+        for src in range(1,server_size):
+            flows_src.append(src)
+            flows_dest.append(server_size-1)
+    
+        # add flow information
+        for i in range(flow_size):
+            flow = objs[topology_id].flow.add()
+            flow.id = i
+            flow.rate = 5/server_size
+            flow.burst = 10
+            source = flows_src[i]
+            destination = flows_dest[i]
+            for FlowPath in range(source, destination+1):
+                flow.path.append(FlowPath)
+            
+            
     with write_pbz("output.pbz", "tests/source_sink.descr") as w:
         for obj in objs:
             w.write(obj)
+
+def main():
+    server_number = 3
+    for i in range(server_number):
+        source_sink_network(server_number)
     
     for network in open_pbz("output.pbz"):
         print(network)
-
-def main():
-    server_number = 2
-    source_sink_network(server_number)
 
 if __name__ == "__main__":
     main()
