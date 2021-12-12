@@ -3,10 +3,8 @@
 
 import pbzlib
 import csv
-import networkx as nx
 import sys
 import re
-import pickle
 sys.path.append(r'/Users/wangweiran/Desktop/SemesterProject/EPFL_Network_Calculus_Semester_Project/DeepFP_gnn-main')
 
 from src.data.graph_transformer import *
@@ -141,17 +139,13 @@ def info_extraction(i, network):
 
 def test(path):
     i = 0
-    for network in pbzlib.open_pbz(path):
+    for i, network in enumerate(pbzlib.open_pbz(path)):
         G, flows_paths = net2basegraph(network)
-        # print("network : ", network)
-        foi = []
-        for flow in network.flow:
-            print("flow = ", flow)
-            if flow.HasField('deborahfp'):
-                foi.append(flow.id)
-        print("the lenght of flow of interest : ", len(foi))
-        print("the content in foi : ", foi)
-        break
+        print(i)
+        if (i == 4):
+            print(G)
+            print(flows_paths)
+            break
 
 
 def main(path):
@@ -159,14 +153,11 @@ def main(path):
     # define the name of the csv file
     i = 0
     for i, network in enumerate(pbzlib.open_pbz(path)):
+        print("topology : ", i)
         info_extraction(i, network)
-        i = i + 1
-        if (i==5):
-            break
     # test(path)
 
 
 if __name__ == "__main__":
-    path = '/Users/wangweiran/Desktop/SemesterProject/EPFL_Network_Calculus_Semester_Project/DeepFP_gnn-main/data/raw/dataserv.ub.tum.de/dataset-train.pbz'
-    # path = '/Users/wangweiran/Desktop/SemesterProject/EPFL_Network_Calculus_Semester_Project/DeepFP_gnn-main/src/output/output.pbz'
+    path = '/Users/wangweiran/Desktop/SemesterProject/EPFL_Network_Calculus_Semester_Project/DeepFP_gnn-main/src/extraction/source-sink.pbz'
     main(path);
