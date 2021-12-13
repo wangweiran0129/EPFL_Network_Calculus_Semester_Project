@@ -130,7 +130,6 @@ def source_sink_construction(serverfile, flowfile, server_size):
     # Dictionary to save the path of each flow
     flow_paths = {}
     
-
     # Add server nodes to the grpah
     with open(serverfile, 'r') as csvServer:
         reader = csv.reader(csvServer)

@@ -1,5 +1,5 @@
 # This code is written by Weiran Wang
-# For any questions or problems, please contact the auther of code at (weiran.wang@epfl.ch)
+# For any questions or problems, please contact the author of code at (weiran.wang@epfl.ch)
 
 import pbzlib
 import csv

@@ -1,3 +1,6 @@
+# This code is written by Weiran Wang
+# For any questions or problems, please contact the author of code at (weiran.wang@epfl.ch)
+
 from pbzlib import write_pbz, open_pbz
 import sys
 sys.path.append(r'/Users/wangweiran/Desktop/SemesterProject/EPFL_Network_Calculus_Semester_Project/DeepFP_gnn-main/')
