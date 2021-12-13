@@ -13,26 +13,23 @@ import org.networkcalculus.dnc.curves.ServiceCurve;
 import org.networkcalculus.dnc.network.server_graph.Flow;
 import org.networkcalculus.dnc.network.server_graph.Server;
 import org.networkcalculus.dnc.network.server_graph.ServerGraph;
-import org.networkcalculus.dnc.tandem.analyses.PmooAnalysis;
-import org.networkcalculus.dnc.tandem.analyses.SeparateFlowAnalysis;
-import org.networkcalculus.dnc.tandem.analyses.TandemMatchingAnalysis;
 import org.networkcalculus.dnc.tandem.analyses.TotalFlowAnalysis;
+import org.networkcalculus.dnc.tandem.analyses.FIFOTandemAnalysis;
 import org.networkcalculus.num.Num;
-import java.net.URLEncoder;
 
 // csv package
 
-public class Topology1 {
+public class Source_Sink_Analysis {
 
-    public Topology1() {
+    public Source_Sink_Analysis() {
     }
 
     public static void main(String[] args) {
 
-        System.out.println("Hello to my first prolonged topology");
+        System.out.println("Hello to Source Sink Tandem Analysis");
         System.out.println();
 
-        Topology1 topology = new Topology1();
+        Source_Sink_Analysis topology = new Source_Sink_Analysis();
 
         // The number of server files and flow files info are the same
         String path = "/Users/wangweiran/Desktop/SemesterProject/EPFL_Network_Calculus_Semester_Project/server_info/";
@@ -83,13 +80,7 @@ public class Topology1 {
 
         // Define the list to store the analysis result;
         ArrayList<Num> TFA_DB = new ArrayList<Num>();
-        ArrayList<Num> TFA_BB = new ArrayList<Num>();
-        ArrayList<Num> SFA_DB = new ArrayList<Num>();
-        ArrayList<Num> SFA_BB = new ArrayList<Num>();
-        ArrayList<Num> PMOO_DB = new ArrayList<Num>();
-        ArrayList<Num> PMOO_BB = new ArrayList<Num>();
-        ArrayList<Num> TMA_DB = new ArrayList<Num>();
-        ArrayList<Num> TMA_BB = new ArrayList<Num>();
+        ArrayList<Num> LUDB_DB = new ArrayList<Num>();
 
         // Java reading csv file
         String path_server = "/Users/wangweiran/Desktop/SemesterProject/EPFL_Network_Calculus_Semester_Project/server_info/";
@@ -234,28 +225,6 @@ public class Topology1 {
         // System.out.println("flow src : " + flow_src);
         // System.out.println("flow dest : " + flow_dest);
         
-        // src > dest -> backward -> 0
-        // src < dest -> forward -> 1
-        // set a flag to detect the whether it's feed-forward or back-forward
-        int flag = 0;
-        for (int i = 0; i < flow_size; i++) {
-            int src = Integer.parseInt(flow_src.get(i));
-            int dest = Integer.parseInt(flow_dest.get(i));
-            if (src == dest) {
-                continue;
-            }
-            // src > dest -> backward -> 0
-            else if (src > dest) {
-                flag = 0;
-                break;
-            }
-            // src < dest -> forward -> 1
-            else {
-                flag = 1;
-                break;
-            }
-        }
-
         // src & dest may differ according to the prolonged topology and foi
         try {
             
@@ -278,20 +247,9 @@ public class Topology1 {
                     serverId.add(sg.addServer(service_curve.get(k)));
                 }
 
-                if (flag == 1) {
-                    System.out.println("The servers are connected by forward");
-                    // addTurn : Connect the Servers
-                    for (int k = 0; k < server_id.size()-1; k++) {
-                        sg.addTurn(serverId.get(k), serverId.get(k+1));
-                    }
-                }
-
-                if (flag == 0) {
-                    System.out.println("The servers are connected by backward");
-                    // addTurn : Connect the Servers
-                    for (int k = server_id.size()-1; k > 0; k--) {
-                        sg.addTurn(serverId.get(k), serverId.get(k-1));
-                    }
+                // addTurn : Connect the Servers
+                for (int k = 0; k < server_id.size()-1; k++) {
+                    sg.addTurn(serverId.get(k), serverId.get(k+1));
                 }
 
                 // addFlow : Connect the Flow with Servers
@@ -325,14 +283,8 @@ public class Topology1 {
                 try {
                     tfa.performAnalysis(flow_of_interest);
                     Num tfa_db = tfa.getDelayBound();
-                    Num tfa_bb = tfa.getBacklogBound();
                     TFA_DB.add(tfa_db);
-                    TFA_BB.add(tfa_bb);
                     System.out.println("delay bound : " + tfa_db);
-                    System.out.println(" per server : " + tfa.getServerDelayBoundMapString());
-                    System.out.println("backlog bound : " + tfa_bb);
-                    System.out.println(" per server : " + tfa.getServerBacklogBoundMapString());
-                    System.out.println("alpha per server: " + tfa.getServerAlphasMapString());
                 } catch (Exception e) {
                     System.out.println("TFA analysis failed");
                     e.printStackTrace();
@@ -340,65 +292,18 @@ public class Topology1 {
 
                 System.out.println();
 
-                // SFA
-                System.out.println("--- Separated Flow Analysis ---");
+                // LUDB-FF
+                System.out.println("--- Least Upper Dealy Bound ---");
                 System.out.println();
-                SeparateFlowAnalysis sfa = new SeparateFlowAnalysis(sg, configuration);
+                FIFOTandemAnalysis ludb_ff = new FIFOTandemAnalysis(sg, configuration);
+
                 try {
-                    sfa.performAnalysis(flow_of_interest);
-                    System.out.println("e2e SFA SCs : " + sfa.getLeftOverServiceCurves());
-                    System.out.println(" per server : " + sfa.getServerLeftOverBetasMapString());
-                    System.out.println("xtx per server : " + sfa.getServerAlphasMapString());
-                    Num sfa_db = sfa.getDelayBound();
-                    Num sfa_bb = sfa.getBacklogBound();
-                    SFA_DB.add(sfa_db);
-                    SFA_BB.add(sfa_bb);
-                    System.out.println("delay bound : " + sfa_db);
-                    System.out.println("backlog bound : " + sfa_bb);
+                    ludb_ff.performAnalysis(flow_of_interest);
+                    Num ludb_db = ludb_ff.getDelayBound();
+                    LUDB_DB.add(ludb_db);
+                    System.out.println("delay bound     : " + ludb_db);
                 } catch (Exception e) {
-                    System.out.println("SFA analysis failed");
-                    e.printStackTrace();
-                }
-
-                System.out.println();
-
-                // PMOO
-                System.out.println("--- PMOO Analysis ---");
-                System.out.println();
-                PmooAnalysis pmoo = new PmooAnalysis(sg, configuration);
-                try {
-                    pmoo.performAnalysis(flow_of_interest);
-                    System.out.println("e2e PMOO SCs : " + pmoo.getLeftOverServiceCurves());
-                    System.out.println("xtx per server : " + pmoo.getServerAlphasMapString());
-                    Num pmoo_db = pmoo.getDelayBound();
-                    Num pmoo_bb = pmoo.getBacklogBound();
-                    PMOO_DB.add(pmoo_db);
-                    PMOO_BB.add(pmoo_bb);
-                    System.out.println("delay bound : " + pmoo_db);
-                    System.out.println("backlog bound : " + pmoo_bb);
-                } catch (Exception e) {
-                    System.out.println("PMOO analysis failed");
-                    e.printStackTrace();
-                }
-
-                System.out.println();
-
-                // TMA
-                System.out.println("--- Tandem Matching Analysis ---");
-                System.out.println();
-                TandemMatchingAnalysis tma = new TandemMatchingAnalysis(sg, configuration);
-                try {
-                    tma.performAnalysis(flow_of_interest);
-                    System.out.println("e2e TMA SCs : " + tma.getLeftOverServiceCurves());
-                    System.out.println("xtx per server : " + tma.getServerAlphasMapString());
-                    Num tma_db = tma.getDelayBound();
-                    Num tma_bb = tma.getBacklogBound();
-                    TMA_DB.add(tma_db);
-                    TMA_BB.add(tma_bb);
-                    System.out.println("delay bound : " + tma_db);
-                    System.out.println("backlog bound : " + tma_bb);
-                } catch (Exception e) {
-                    System.out.println("TMA analysis failed");
+                    System.out.println("LUDB-FF analysis failed");
                     e.printStackTrace();
                 }
 
@@ -409,18 +314,16 @@ public class Topology1 {
 
             // Write the analysis results into a csv file
 
-            String fileName = "topology" + topology_id + "_analysis.csv";
-            String filePath = "/Users/wangweiran/Desktop/SemesterProject/EPFL_Network_Calculus_Semester_Project/network_analysis/";
+            String fileName = "source_sink_tandem" + topology_id + "_analysis.csv";
+            String filePath = "/Users/wangweiran/Desktop/SemesterProject/EPFL_Network_Calculus_Semester_Project/source_sink_tandem_analysis/";
             File writename = new File(filePath + fileName);
             writename.createNewFile();
             BufferedWriter out = new BufferedWriter(new FileWriter(writename));
-            out.write("topology_id, flow of interest, TFA_DB, TFA_BB, SFA_DB, SFA_BB, PMOO_DB, PMOO_BB, TMA_DB, TMA_BB \r\n");
+            out.write("topology_id, flow of interest, TFA_DB, LUDB_DB \r\n");
             for (int temp = 0; temp < flow_of_interest_temp.size(); temp++) {
                 out.write(topology_id + ", " + flow_of_interest_temp.get(temp) 
-                + ", " + TFA_DB.get(temp).toString() + ", " + TFA_BB.get(temp).toString()
-                + ", " + SFA_DB.get(temp).toString() + ", " + SFA_BB.get(temp).toString()
-                + ", " + PMOO_DB.get(temp).toString() + ", " + PMOO_BB.get(temp).toString()
-                + ", " + TMA_DB.get(temp).toString() + ", " + TMA_BB.get(temp).toString() + "\r\n");
+                + ", " + TFA_DB.get(temp).toString() 
+                + ", " + LUDB_DB.get(temp).toString() + "\r\n");
             }
             out.flush();
             out.close();
