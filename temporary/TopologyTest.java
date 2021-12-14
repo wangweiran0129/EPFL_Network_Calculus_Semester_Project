@@ -2,8 +2,6 @@
 // For any questions or problems, please contact the author of the code at (weiran.wang@epfl.ch)
 package org.networkcalculus.dnc.semesterproject;
 
-import java.io.*;
-import java.util.*;
 import org.networkcalculus.dnc.AnalysisConfig;
 import org.networkcalculus.dnc.curves.ArrivalCurve;
 import org.networkcalculus.dnc.curves.Curve;
@@ -11,12 +9,11 @@ import org.networkcalculus.dnc.curves.ServiceCurve;
 import org.networkcalculus.dnc.network.server_graph.Flow;
 import org.networkcalculus.dnc.network.server_graph.Server;
 import org.networkcalculus.dnc.network.server_graph.ServerGraph;
+import org.networkcalculus.dnc.tandem.analyses.FIFOTandemAnalysis;
 import org.networkcalculus.dnc.tandem.analyses.PmooAnalysis;
 import org.networkcalculus.dnc.tandem.analyses.SeparateFlowAnalysis;
 import org.networkcalculus.dnc.tandem.analyses.TandemMatchingAnalysis;
 import org.networkcalculus.dnc.tandem.analyses.TotalFlowAnalysis;
-import org.networkcalculus.num.Num;
-import java.net.URLEncoder;
 
 // network calculus analysis
 public class TopologyTest {
@@ -122,6 +119,8 @@ public class TopologyTest {
         ServiceCurve service_curve7 = Curve.getFactory().createRateLatency(serverRate7, serverLatency7);
 
         ServerGraph sg = new ServerGraph();
+        AnalysisConfig configuration = new AnalysisConfig();
+        
 
         Server s0 = sg.addServer(service_curve0);
         Server s1 = sg.addServer(service_curve1);
@@ -131,6 +130,9 @@ public class TopologyTest {
         Server s5 = sg.addServer(service_curve5);
         Server s6 = sg.addServer(service_curve6);
         Server s7 = sg.addServer(service_curve7);
+
+        configuration.enforceMaxSC(AnalysisConfig.MaxScEnforcement.GLOBALLY_ON);
+        configuration.enforceMaxScOutputRate(AnalysisConfig.MaxScEnforcement.GLOBALLY_ON);
 
         sg.addTurn(s7, s6);
         sg.addTurn(s6, s5);
@@ -160,7 +162,7 @@ public class TopologyTest {
 
         sg.addFlow(arrival_curve0, s5, s1);
         sg.addFlow(arrival_curve1, s2);
-        sg.addFlow(arrival_curve2, s7, s1);
+        sg.addFlow(arrival_curve2, s7, s3);
         sg.addFlow(arrival_curve3, s1, s0);
         sg.addFlow(arrival_curve4, s2);
         sg.addFlow(arrival_curve5, s4, s0);
@@ -178,21 +180,23 @@ public class TopologyTest {
 
         Flow flow_of_interest = sg.getFlow(0);
         System.out.println("Flow of interest : " + flow_of_interest.toString());
+        System.out.println("FOI getpath : " + flow_of_interest.getPath());
         System.out.println();
 
         // Analyze the network
             // TFA
+            System.out.println();
             System.out.println("--- Total Flow Analysis ---");
             // If no analysis configuration is given, the defaults are used
-            TotalFlowAnalysis tfa = new TotalFlowAnalysis(sg);
+            TotalFlowAnalysis tfa = new TotalFlowAnalysis(sg, configuration);
 
             try {
                 tfa.performAnalysis(flow_of_interest);
                 System.out.println("delay bound     : " + tfa.getDelayBound());
-                System.out.println("     per server : " + tfa.getServerDelayBoundMapString());
+                // System.out.println("     per server : " + tfa.getServerDelayBoundMapString());
                 System.out.println("backlog bound   : " + tfa.getBacklogBound());
-                System.out.println("     per server : " + tfa.getServerBacklogBoundMapString());
-                System.out.println("alpha per server: " + tfa.getServerAlphasMapString());
+                // System.out.println("     per server : " + tfa.getServerBacklogBoundMapString());
+                // System.out.println("alpha per server: " + tfa.getServerAlphasMapString());
             } catch (Exception e) {
                 System.out.println("TFA analysis failed");
                 e.printStackTrace();
@@ -201,15 +205,16 @@ public class TopologyTest {
             System.out.println();
 
             // SFA
+            System.out.println();
             System.out.println("--- Separated Flow Analysis ---");
             // If no analysis configuration is given, the defaults are used
-            SeparateFlowAnalysis sfa = new SeparateFlowAnalysis(sg);
+            SeparateFlowAnalysis sfa = new SeparateFlowAnalysis(sg, configuration);
 
             try {
                 sfa.performAnalysis(flow_of_interest);
-                System.out.println("e2e SFA SCs     : " + sfa.getLeftOverServiceCurves());
-                System.out.println("     per server : " + sfa.getServerLeftOverBetasMapString());
-                System.out.println("xtx per server  : " + sfa.getServerAlphasMapString());
+                // System.out.println("e2e SFA SCs     : " + sfa.getLeftOverServiceCurves());
+                // System.out.println("     per server : " + sfa.getServerLeftOverBetasMapString());
+                // System.out.println("xtx per server  : " + sfa.getServerAlphasMapString());
                 System.out.println("delay bound     : " + sfa.getDelayBound());
                 System.out.println("backlog bound   : " + sfa.getBacklogBound());
             } catch (Exception e) {
@@ -220,14 +225,15 @@ public class TopologyTest {
             System.out.println();
 
             // PMOO
+            System.out.println();
             System.out.println("--- PMOO Analysis ---");
             // If no analysis configuration is given, the defaults are used
-            PmooAnalysis pmoo = new PmooAnalysis(sg);
+            PmooAnalysis pmoo = new PmooAnalysis(sg, configuration);
 
             try {
                 pmoo.performAnalysis(flow_of_interest);
-                System.out.println("e2e PMOO SCs    : " + pmoo.getLeftOverServiceCurves());
-                System.out.println("xtx per server  : " + pmoo.getServerAlphasMapString());
+                // System.out.println("e2e PMOO SCs    : " + pmoo.getLeftOverServiceCurves());
+                // System.out.println("xtx per server  : " + pmoo.getServerAlphasMapString());
                 System.out.println("delay bound     : " + pmoo.getDelayBound());
                 System.out.println("backlog bound   : " + pmoo.getBacklogBound());
             } catch (Exception e) {
@@ -238,18 +244,32 @@ public class TopologyTest {
             System.out.println();
             
             // TMA
+            System.out.println();
             System.out.println("--- Tandem Matching Analysis ---");
             // If no analysis configuration is given, the defaults are used
-            TandemMatchingAnalysis tma = new TandemMatchingAnalysis(sg);
+            TandemMatchingAnalysis tma = new TandemMatchingAnalysis(sg, configuration);
 
             try {
-             tma.performAnalysis(flow_of_interest);
-                System.out.println("e2e TMA SCs     : " + tma.getLeftOverServiceCurves());
-                System.out.println("xtx per server  : " + tma.getServerAlphasMapString());
+                tma.performAnalysis(flow_of_interest);
+                // System.out.println("e2e TMA SCs     : " + tma.getLeftOverServiceCurves());
+                // System.out.println("xtx per server  : " + tma.getServerAlphasMapString());
                 System.out.println("delay bound     : " + tma.getDelayBound());
                 System.out.println("backlog bound   : " + tma.getBacklogBound());
             } catch (Exception e) {
                 System.out.println("TMA analysis failed");
+                e.printStackTrace();
+            }
+
+            // LUDB-FF
+            System.out.println();
+            System.out.println("--- LUDB-FF Analysis ---");
+            FIFOTandemAnalysis ludb_ff = new FIFOTandemAnalysis(sg, configuration);
+
+            try {
+                ludb_ff.performAnalysis(flow_of_interest);
+                System.out.println("delay bound     : " + ludb_ff.getDelayBound());
+            } catch (Exception e) {
+                System.out.println("LUDB-FF analysis failed");
                 e.printStackTrace();
             }
 

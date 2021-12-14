@@ -39,7 +39,7 @@ public class Source_Sink_Analysis {
 
         // Generate the network and analyze the network
         try {
-            for (int topology_id = 0; topology_id < filenumber; topology_id++) {
+            for (int topology_id =11; topology_id < filenumber; topology_id++) {
                 topology.run(topology_id);
             }
         } catch (Exception e) {
@@ -313,7 +313,6 @@ public class Source_Sink_Analysis {
             }
 
             // Write the analysis results into a csv file
-
             String fileName = "source_sink_tandem" + topology_id + "_analysis.csv";
             String filePath = "/Users/wangweiran/Desktop/SemesterProject/EPFL_Network_Calculus_Semester_Project/source_sink_tandem_analysis/";
             File writename = new File(filePath + fileName);
@@ -325,6 +324,17 @@ public class Source_Sink_Analysis {
                 + ", " + TFA_DB.get(temp).toString() 
                 + ", " + LUDB_DB.get(temp).toString() + "\r\n");
             }
+            // Calculate the average number of TFA and LUDB
+            out.write("topology_id, TFA_DB_Average, LUDB_DB_Average \r\n");
+            Double TFA_DB_Sum = 0.0;
+            Double LUDB_DB_Sum = 0.0;
+            for (int count = 0; count < flow_of_interest_temp.size(); count++){
+                TFA_DB_Sum += Double.valueOf(TFA_DB.get(count).toString());
+                LUDB_DB_Sum += Double.valueOf(LUDB_DB.get(count).toString());
+            }
+            Double TFA_DB_Average = TFA_DB_Sum/flow_of_interest_temp.size();
+            Double LUDB_DB_Average = LUDB_DB_Sum/flow_of_interest_temp.size();
+            out.write(topology_id + ", " + TFA_DB_Average + ", " + LUDB_DB_Average + "\r\n");
             out.flush();
             out.close();
 
