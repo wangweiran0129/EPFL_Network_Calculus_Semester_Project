@@ -59,5 +59,5 @@ The final package file used to aggregate all the Java classes files which can be
 - Supervisor: Prof. Le boudec Jean-Yves (jean-yves.leboudec@epfl.ch)
 - Special Acknowledge to:  
 Hadidane Karim (karim.hadidane@epfl.ch)  
-Bondorf Steffen (Bondorf.Steffen@ruhr-uni-bochum.de)
+Bondorf Steffen (Bondorf.Steffen@ruhr-uni-bochum.de)  
 Alexander Scheffler (Alexander.Scheffler@ruhr-uni-bochum.de)
