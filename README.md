@@ -19,6 +19,23 @@ The whole project is run on my Macbook Pro (Intel Chip) and a EPFL server.
 (For Mac users, there will be installation error if your Mac appearance is DARK)
 - Python Packages Information can be found at [requirements.txt](https://github.com/wangweiran0129/EPFL_Network_Calculus_Semester_Project/blob/master/DeepFP_gnn-main/requirements.txt)
 
+## EPFL SCITAS Server Configuration
+For EPFL servers ONLY!  
+Similar configuration should also be set properly. Since students are not the admin of EPFL servers, it is therefore a good idea to put Java configuration into a user-define file under the home path, i.e., add these three lines into the .bashrc file.
+```
+export JAVA_HOME=/home/weirwang/jdk-16.0.2
+export PATH=$JAVA_HOME/bin:$PATH
+export CLASSPATH=.:$JAVA_HOME/lib/dt.jar:$JAVA_HOME/lib/tools.jar
+```
+For python environment, the system default version is Python 2.7.5 and the pip version is out of fashion. However, students cannot upgrade pip due to the non-admin status. Consequently, a python virtual environment is recommended. For jupyter notebook configuration, please refer to the [official website](https://scitas-data.epfl.ch/confluence/display/DOC/Using+Jupyter). After configuration, to enter the virtual environment, please use command:
+```
+$source opt/$SYS_TYPE/venv-gcc/bin/activation
+```
+Then, python package can be installed and upgraded according to specific needs. To activate jupyter notebook, please use command:
+```
+$jupyter notebook --ip="$(hostname -s).epfl.ch"
+```
+
 ## Codes Description
 `network_extraction.py`  
 Extract all the necessary network information from the original topology graphs and post-GNN prolonged topology graphs. These network information will be used in NetCal/DNC used for network analysis.  
@@ -57,7 +74,7 @@ The final package file used to aggregate all the Java classes files which can be
 - Project Student: Weiran Wang (weiran.wang@epfl.ch)
 - Ph.D. Advisor: Tabatabaee Hossein (hossein.tabatabaee@epfl.ch)
 - Supervisor: Prof. Le boudec Jean-Yves (jean-yves.leboudec@epfl.ch)
-- Special Acknowledge to:  
+- Special Acknowledgement to:  
 Hadidane Karim (karim.hadidane@epfl.ch)  
 Bondorf Steffen (Bondorf.Steffen@ruhr-uni-bochum.de)  
 Alexander Scheffler (Alexander.Scheffler@ruhr-uni-bochum.de)
