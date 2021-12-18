@@ -161,7 +161,7 @@ public class TopologyTest {
         ArrivalCurve arrival_curve16 = Curve.getFactory().createTokenBucket(flowRate16, flowBurst16);
 
         sg.addFlow(arrival_curve0, s5, s1);
-        sg.addFlow(arrival_curve1, s2);
+        sg.addFlow(arrival_curve1, s2, s1);
         sg.addFlow(arrival_curve2, s7, s3);
         sg.addFlow(arrival_curve3, s1, s0);
         sg.addFlow(arrival_curve4, s2);
@@ -170,9 +170,9 @@ public class TopologyTest {
         sg.addFlow(arrival_curve7, s2);
         sg.addFlow(arrival_curve8, s1, s0);
         sg.addFlow(arrival_curve9, s5, s0);
-        sg.addFlow(arrival_curve10, s7, s0);
+        sg.addFlow(arrival_curve10, s7, s2);
         sg.addFlow(arrival_curve11, s0);
-        sg.addFlow(arrival_curve12, s4, s2);
+        sg.addFlow(arrival_curve12, s4, s1);
         sg.addFlow(arrival_curve13, s3, s1);
         sg.addFlow(arrival_curve14, s2, s0);
         sg.addFlow(arrival_curve15, s5);

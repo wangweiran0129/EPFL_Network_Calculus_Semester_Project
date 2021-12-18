@@ -32,14 +32,17 @@ public class Source_Sink_Analysis {
         Source_Sink_Analysis topology = new Source_Sink_Analysis();
 
         // The number of server files and flow files info are the same
+        // local path
         String path = "/Users/wangweiran/Desktop/SemesterProject/EPFL_Network_Calculus_Semester_Project/server_info/";
+        // EPFL server path
+        // String path = "/home/weirwang/SemesterProject/server_info/";
         int filenumber = get_file_number(path);
 
         System.out.println("How many files in server folder : " + filenumber);
 
         // Generate the network and analyze the network
         try {
-            for (int topology_id =11; topology_id < filenumber; topology_id++) {
+            for (int topology_id = 0; topology_id < filenumber; topology_id++) {
                 topology.run(topology_id);
             }
         } catch (Exception e) {
@@ -83,7 +86,10 @@ public class Source_Sink_Analysis {
         ArrayList<Num> LUDB_DB = new ArrayList<Num>();
 
         // Java reading csv file
+        // local path
         String path_server = "/Users/wangweiran/Desktop/SemesterProject/EPFL_Network_Calculus_Semester_Project/server_info/";
+        // EPFL server path
+        // String path_server = "/home/weirwang/SemesterProject/server_info/";
         String filename_server = "topology" + topology_id + "_server.csv";
         String csvServer = path_server + filename_server;
         System.out.println("server information stored in : " + csvServer);
@@ -119,14 +125,17 @@ public class Source_Sink_Analysis {
             }
         }
 
+        // local flow info path
         String path_flow = "/Users/wangweiran/Desktop/SemesterProject/EPFL_Network_Calculus_Semester_Project/flow_info/";
+        // EPFL flow info path
+        // String path_flow = "/home/weirwang/SemesterProject/flow_info/";
         String filename_flow = "topology" + topology_id + "_flow.csv";
         String csvFlow = path_flow + filename_flow;
         System.out.println("flow information stored in : " + csvFlow);
         BufferedReader brFlow = null;
         int flow_counter = 0;
-        int topology_size = 1;
-        int flow_size = 0;
+        int topology_size = 2;
+        int flow_size = 2 * server_id.size() -1;
         // basic flow information before flow prolongation
         // need to get the # flow in the topology
         // and how many topologies I should have in total
@@ -139,7 +148,6 @@ public class Source_Sink_Analysis {
                 // flow_beginning is the first flow in the network, i.e., f0
                 int flow_beginning = Integer.parseInt(flow[2]);
                 if (flow_beginning != flow_counter) {
-                    topology_size = topology_size + 1;
                     flow_size = flow_counter;
                     flow_counter = 0;
                 }
@@ -149,6 +157,10 @@ public class Source_Sink_Analysis {
                 double arrivalRate = Double.parseDouble(flow[3]);
                 double flowBurst = Double.parseDouble(flow[4]);
                 arrival_curve.add(Curve.getFactory().createTokenBucket(arrivalRate, flowBurst));
+                int src_id = Integer.parseInt(flow[5]);
+                flow_src.add(server_id.get(src_id));
+                int dest_id = Integer.parseInt(flow[6]);
+                flow_dest.add(server_id.get(dest_id));
                 int foi = Integer.parseInt(flow[7]);
                 if (foi == 1) {
                     flow_of_interest_temp.add(flow[2]);
@@ -168,8 +180,6 @@ public class Source_Sink_Analysis {
                 }
             }
         }
-        System.out.println("topology size : " + topology_size);
-        System.out.println("flow size : " + flow_size);
 
         // print server information
         System.out.println();
@@ -191,49 +201,25 @@ public class Source_Sink_Analysis {
             System.out.println();
         }
 
-        // we need to prolong the topology and connect the flow into the topology
-        try {
-            brFlow = new BufferedReader(new FileReader(csvFlow));
-            brFlow.readLine();
-            // Skip the original topology information
-            for (int i = 0; i < flow_size; i++) {
-                brFlow.readLine();
-            }
-            while ((line = brFlow.readLine()) != null) {
-                // use comma as separator
-                String[] flow = line.split(csvSplitBy);
-                // dest_id vary according to different foi(s)
-                int src_id = Integer.parseInt(flow[5]);
-                flow_src.add(server_id.get(src_id));
-                int dest_id = Integer.parseInt(flow[6]);
-                flow_dest.add(server_id.get(dest_id));
-            }
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            if (brFlow != null) {
-                try {
-                    brFlow.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-
         // System.out.println("flow src : " + flow_src);
         // System.out.println("flow dest : " + flow_dest);
         
         // src & dest may differ according to the prolonged topology and foi
         try {
-            
-            // j is the order of topology_size
-            for (int j = 1; j < topology_size; j++) {
 
-                System.out.println();
-                System.out.println("----- The " + j + " Network ----- ");
-                System.out.println();
+            // j is the order of topology_size
+            for (int j = 0; j < topology_size; j++) {
+
+                if (j==0) {
+                    System.out.println();
+                    System.out.println("----- Before Flow Prolongation ----- ");
+                    System.out.println();
+                }
+                else {
+                    System.out.println();
+                    System.out.println("----- After Flow Prolongation ----- ");
+                    System.out.println();
+                }
 
                 // Create a Network Topology & Add Server Curve
                 ServerGraph sg = new ServerGraph();
@@ -255,22 +241,22 @@ public class Source_Sink_Analysis {
                 // addFlow : Connect the Flow with Servers
                 for (int i = 0; i < flow_size; i++) {
                     String fi = "f" + flow_id.get(i);
-                    int index = i + flow_size*(j-1);
+                    int index = i + flow_size*(j);
                     int src = Integer.parseInt(flow_src.get(index));
                     int dest = Integer.parseInt(flow_dest.get(index));
                     if (src == dest){
-                        // System.out.println(fi + "; src : " + src + "; index : " + index);
+                        System.out.println(fi + "; src : " + src + "; index : " + index);
                         sg.addFlow(fi, arrival_curve.get(i), serverId.get(src));
                     }
                     else {
-                        // System.out.println(fi + "; src : " + src + "; dest : " + dest + "; index : " + index);
+                        System.out.println(fi + "; src : " + src + "; dest : " + dest + "; index : " + index);
                         sg.addFlow(fi, arrival_curve.get(i), serverId.get(src), serverId.get(dest));
                     }
                 }
 
                 // when i reaches the flow size, we will do the analysis
                 // Set the Flow of Interest
-                int foi_no = Integer.parseInt(flow_of_interest_temp.get(j - 1));
+                int foi_no = Integer.parseInt(flow_of_interest_temp.get(j));
                 Flow flow_of_interest = sg.getFlow(foi_no);
                 System.out.println("Flow of interest : " + flow_of_interest.toString());
                 System.out.println();
@@ -309,32 +295,25 @@ public class Source_Sink_Analysis {
 
                 System.out.println();
                 System.out.println();
-
             }
 
             // Write the analysis results into a csv file
             String fileName = "source_sink_tandem" + topology_id + "_analysis.csv";
+            // local source sink tandem analysis path
             String filePath = "/Users/wangweiran/Desktop/SemesterProject/EPFL_Network_Calculus_Semester_Project/source_sink_tandem_analysis/";
+            // EPFL server source sink tandem analysis path
+            // String filePath = "/home/weirwang/SemesterProject/source_sink_tandem_analysis/";
             File writename = new File(filePath + fileName);
             writename.createNewFile();
             BufferedWriter out = new BufferedWriter(new FileWriter(writename));
+            out.write("Before Prolongation \r\n");
             out.write("topology_id, flow of interest, TFA_DB, LUDB_DB \r\n");
-            for (int temp = 0; temp < flow_of_interest_temp.size(); temp++) {
-                out.write(topology_id + ", " + flow_of_interest_temp.get(temp) 
-                + ", " + TFA_DB.get(temp).toString() 
-                + ", " + LUDB_DB.get(temp).toString() + "\r\n");
-            }
+            int flow_of_interest_index = Integer.parseInt(flow_of_interest_temp.get(0));
+            out.write(topology_id + ", " + flow_src.get(flow_of_interest_index) + "->" + flow_dest.get(flow_of_interest_index) + ", " + TFA_DB.get(0).toString() + ", " + LUDB_DB.get(0).toString() + "\r\n");
             // Calculate the average number of TFA and LUDB
-            out.write("topology_id, TFA_DB_Average, LUDB_DB_Average \r\n");
-            Double TFA_DB_Sum = 0.0;
-            Double LUDB_DB_Sum = 0.0;
-            for (int count = 0; count < flow_of_interest_temp.size(); count++){
-                TFA_DB_Sum += Double.valueOf(TFA_DB.get(count).toString());
-                LUDB_DB_Sum += Double.valueOf(LUDB_DB.get(count).toString());
-            }
-            Double TFA_DB_Average = TFA_DB_Sum/flow_of_interest_temp.size();
-            Double LUDB_DB_Average = LUDB_DB_Sum/flow_of_interest_temp.size();
-            out.write(topology_id + ", " + TFA_DB_Average + ", " + LUDB_DB_Average + "\r\n");
+            out.write("After Prolongation \r\n");
+            out.write("topology_id, flow of interest, TFA_DB, LUDB_DB \r\n");
+            out.write(topology_id + ", " + flow_src.get(flow_of_interest_index) + "->" + flow_dest.get(flow_of_interest_index) + ", " + TFA_DB.get(1).toString() + ", " + LUDB_DB.get(1).toString() + "\r\n");
             out.flush();
             out.close();
 
