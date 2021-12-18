@@ -4,8 +4,8 @@
 from pbzlib import write_pbz, open_pbz
 import sys
 sys.path.append(r'/Users/wangweiran/Desktop/SemesterProject/EPFL_Network_Calculus_Semester_Project/DeepFP_gnn-main/')
-from src.extraction.tests.source_sink_pb2 import Network, Server
-from tests import source_sink_pb2
+from src.extraction.source_sink.source_sink_pb2 import Network, Server
+from source_sink import source_sink_pb2
 
 def source_sink_network(server_number):
 
@@ -56,14 +56,10 @@ def source_sink_network(server_number):
             destination = flows_dest[i]
             for FlowPath in range(source, destination+1):
                 flow.path.append(FlowPath)
-            # for a topology with only one server, there is no foi
-            if (server_size==1):
-                continue
-            # add flow of interest
-            else:
+            if (len(flow.path) == topology_id+1):
                 flow.deborahfp.delay_bound = 1
 
-    with write_pbz("source-sink.pbz", "tests/source_sink.descr") as w:
+    with write_pbz("source-sink.pbz", "source_sink/source_sink.descr") as w:
         for obj in objs:
             w.write(obj)
 

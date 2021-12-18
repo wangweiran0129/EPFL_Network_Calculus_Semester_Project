@@ -16,25 +16,22 @@ def visualization():
 
     # read topology_id, TFA and LUDB from .csv files
     filepath = '/Users/wangweiran/Desktop/SemesterProject/EPFL_Network_Calculus_Semester_Project/source_sink_tandem_analysis/'
-    file_number = len([name for name in os.listdir(filepath) if os.path.isfile(os.path.join(filepath, name)) and 'topology' in name])
+    file_number = len([name for name in os.listdir(filepath) if os.path.isfile(os.path.join(filepath, name)) and 'analysis' in name])
+    print("file_number : ", file_number)
     
     X = []
     TFA = []
     LUDB = []
 
+    # there is some problems with topology 0
     # get the topology information
-    for topology_id in range(1, 5):
+    for topology_id in range(1, file_number):
         filename = 'source_sink_tandem' + str(topology_id) + '_analysis.csv'
         with open(filepath+filename, 'r') as csvAnalysis:
             reader = csvAnalysis.readlines()[-1]
-            # targetLine = reader[-1]
             X.append(topology_id+1)
             TFA.append(float(reader.split(',')[1]))
             LUDB.append(float(reader.split(',')[2].replace('\n','')))
-    
-    print("X = ", X[0])
-    print("TFA = ", TFA)
-    print("LUDB = ", LUDB)
 
     # visualize the plot
     fig, ax = plt.subplots()
@@ -43,7 +40,7 @@ def visualization():
     plt.gca().xaxis.set_major_locator(MaxNLocator(integer=True))
     ax.set_xlabel('Number of servers')
     ax.set_ylabel('Delay of the f.o.i')
-    ax.set_title('Source sink Tandem Analysis')
+    ax.set_title('Source Sink Tandem Analysis')
     ax.legend()
 
     plt.show()

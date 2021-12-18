@@ -75,7 +75,10 @@ def info_extraction(i, network):
         flows_src.append(flow_src)
         flows_dest.append(flow_dest)
         # for the original graph, foi is -1
-        flow_of_interest.append(-1)
+        if (flow_src == 0 and flow_dest == server_size-1):
+            flow_of_interest.append(1)
+        else:
+            flow_of_interest.append(-1)
     
     # for the prolonged graph
     # calculate the number of foi in one network
@@ -137,17 +140,6 @@ def info_extraction(i, network):
                 flow_csv.writerow([topology_id, k, flows_id[j], flows_rates[j], flows_bursts[j], flows_src[j + flow_size * k], flows_dest[j + flow_size * k], flow_of_interest[j + flow_size * k]])
 
 
-def test(path):
-    i = 0
-    for i, network in enumerate(pbzlib.open_pbz(path)):
-        G, flows_paths = net2basegraph(network)
-        print(i)
-        if (i == 4):
-            print(G)
-            print(flows_paths)
-            break
-
-
 def main(path):
 
     # define the name of the csv file
@@ -155,7 +147,6 @@ def main(path):
     for i, network in enumerate(pbzlib.open_pbz(path)):
         print("topology : ", i)
         info_extraction(i, network)
-    # test(path)
 
 
 if __name__ == "__main__":
