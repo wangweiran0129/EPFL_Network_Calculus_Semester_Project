@@ -90,10 +90,10 @@ def info_extraction(i, network):
     
     # the basic information of a network is the same
     # the dest will change according to different foi
+    '''
     for foi_index in foi:
         G_f, pro_dict, node_ids = prolong_graph(G, foi_index, flows_paths)
         # print("foi_index : ", foi_index)
-        # This part will be changed later
         for path in flows_paths:
             # the src doesn't change
             flow_src = flows_paths[path][0]
@@ -103,6 +103,22 @@ def info_extraction(i, network):
             else:
                 flow_dest = flows_paths[path][-1]
             flows_src.append(flow_src)
+            flows_dest.append(flow_dest)
+            # for the foi, it will be labeled as 1
+            if path == foi_index:
+                flow_of_interest.append(1)
+            else:
+                flow_of_interest.append(-1)
+    '''
+
+    for foi_index in foi:
+        prolonged_network = next(pbzlib.open_pbz("/Users/wangweiran/Desktop/SemesterProject/EPFL_Network_Calculus_Semester_Project/DeepFP_gnn-main/src/output/stn_test" + str(i) + ".pbz"))
+        # the src doesn't change
+        # the destination may change according to the GNN flow prolongation
+        for path in flows_paths:
+            flow_src = flows_paths[path][0]
+            flows_src.append(flow_src)
+            flow_dest = prolonged_network.flow[path].sink
             flows_dest.append(flow_dest)
             # for the foi, it will be labeled as 1
             if path == foi_index:
