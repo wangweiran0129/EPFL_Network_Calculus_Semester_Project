@@ -1,9 +1,14 @@
 import sys
-sys.path.insert(0, "../src/")
-from data.graph_transformer import *
-from data.prepare_dataset import *
-from model.train_model import *
-from .output_pb2 import *
+sys.path.append(r'/Users/wangweiran/Desktop/SemesterProject/EPFL_Network_Calculus_Semester_Project/DeepFP_gnn-main')
+sys.path.insert(0, "../src")
+from src.data.graph_transformer import *
+from src.data.prepare_dataset import *
+from src.model.train_model import *
+from src.output.output_pb2 import *
+from src.model.gnn import *
+import re
+import torch
+import torch.nn as nn
 from pbzlib import write_pbz, open_pbz
 
 
@@ -14,7 +19,7 @@ def predict_network(network, foi_id, model, output_file="output.pbz"):
     :param foi_id: the flow of interest
     :param model: the model
     :param output_file: output file to generate
-    :return:
+    :return: 
     """
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
@@ -36,12 +41,21 @@ def predict_network(network, foi_id, model, output_file="output.pbz"):
     foi_idx = torch.where(graph.x[:, 2])[0]
     output_foi = torch.index_select(out1.view(-1), 0, foi_idx)
     predicted_label = 1 if output_foi.item() >= 0.5 else 0
+    # print("predicted label : ", predicted_label)
+
+    # The graph with a single server don not need to prolong
+    if len(network.server) == 1:
+        print("There is only one server in this topology, so the flow cannot be prolonged")
+        write_network(network, start_sink_dict, output_file)
+        return
 
     # If the prediction is that FP is not worth then write the same network
     if not predicted_label:
         write_network(network, start_sink_dict, output_file)
+        print("The network is not worth to prolong")
         return
 
+    print("This network can be prolonged")
     idxmask = torch.where(graph.mask)[0]
     output_prolongations = torch.index_select(out2.view(-1), 0, idxmask)
 
@@ -54,13 +68,16 @@ def predict_network(network, foi_id, model, output_file="output.pbz"):
     inv_map = {v: k for k, v in node_ids.items()}
 
     z = [inv_map[x] for x in np.array(sinks)]
-    to_be_prolonged = {get_flowid_from_prolongation_node_name(k): get_serverid_from_prolongation_node_name(k) for k in
-                       z}
+    print("what's z?", z)
+    to_be_prolonged = {get_flowid_from_prolongation_node_name(k): get_serverid_from_prolongation_node_name(k) for k in z}
+    print("to_be_prolonged : ", to_be_prolonged)
 
     for flow, server in to_be_prolonged.items():
         start_sink_dict[flow][1] = server
 
     write_network(network, start_sink_dict, output_file)
+
+    print("start_sink_dic : ", start_sink_dict)
 
     return graph
 
@@ -88,17 +105,19 @@ def write_network(network, flows_start_sink, filename):
         p.start = flows_start_sink[f.id][0]
         p.sink = flows_start_sink[f.id][1]
 
-    with write_pbz(filename, "output.descr") as w:
+    with write_pbz(filename, "/Users/wangweiran/Desktop/SemesterProject/EPFL_Network_Calculus_Semester_Project/DeepFP_gnn-main/src/output/output.descr") as w:
         for obj in objs:
             w.write(obj)
 
 
-
 def get_flowid_from_prolongation_node_name(s):
-    flow = int(s[s.index("_") - 1])
+    flow = int(re.search(r"\d+", s).group())
+    #flow = int(s[s.index("_") - 1])
     return flow
 
 
 def get_serverid_from_prolongation_node_name(s):
-    server = int(s[s.index("_") + 1])
+    server_temp = re.search(r"_\d+", s).group()
+    server = int(re.search(r"\d+", server_temp).group())
+    # server = int(s[s.index("_") + 1])
     return server
