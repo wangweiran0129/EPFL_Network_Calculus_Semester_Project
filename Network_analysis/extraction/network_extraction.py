@@ -6,11 +6,9 @@ import csv
 import sys
 import re
 sys.path.append(r'/Users/wangweiran/Desktop/SemesterProject/EPFL_Network_Calculus_Semester_Project/DeepFP_gnn-main')
-
 from src.data.graph_transformer import *
 
 def info_extraction(i, network):
-    
     '''
     For the server_info.csv files, the column names are
     topology_id, server_id, server_rate, server_latency
@@ -19,6 +17,8 @@ def info_extraction(i, network):
     :network: the network information
     :return: server & flow csv files
     '''
+
+    main_path = "/Users/wangweiran/Desktop/SemesterProject/EPFL_Network_Calculus_Semester_Project/"
 
     # create the graph from the dataset
     G, flows_paths = net2basegraph(network)
@@ -91,7 +91,7 @@ def info_extraction(i, network):
     # the basic information of a network is the same
     # the dest will change according to different foi
     for foi_index in foi:
-        prolonged_network = next(pbzlib.open_pbz("/Users/wangweiran/Desktop/SemesterProject/EPFL_Network_Calculus_Semester_Project/DeepFP_gnn-main/src/output/stn_test" + str(i) + ".pbz"))
+        prolonged_network = next(pbzlib.open_pbz(main_path + "/Network_analysis/source_sink_prolongation_pbz/source_sink_tandem_" + str(i) + ".pbz"))
         # the src doesn't change
         # the destination may change according to the GNN flow prolongation
         for path in flows_paths:
@@ -106,7 +106,7 @@ def info_extraction(i, network):
                 flow_of_interest.append(-1)
 
     # create a csv file for server
-    path_server = '/Users/wangweiran/Desktop/SemesterProject/EPFL_Network_Calculus_Semester_Project/server_info/'
+    path_server = main_path + 'Network_analysis/server_info/'
     filename_server = 'topology' + topology_id + '_server.csv'
     print('filename = ', path_server + filename_server)
 
@@ -120,7 +120,7 @@ def info_extraction(i, network):
             server_csv.writerow([topology_id, servers_id[j], servers_rates[j], servers_latency[j]])
 
     # create a csv file for flow
-    path_flow = '/Users/wangweiran/Desktop/SemesterProject/EPFL_Network_Calculus_Semester_Project/flow_info/'
+    path_flow = main_path + 'Network_analysis/flow_info/'
     filename_flow = 'topology' + topology_id + '_flow.csv'
     print('file_name = ', path_flow + filename_flow)
 
@@ -136,7 +136,6 @@ def info_extraction(i, network):
 
 
 def main(path):
-
     # define the name of the csv file
     for i, network in enumerate(pbzlib.open_pbz(path)):
         print("topology : ", i)
@@ -144,5 +143,6 @@ def main(path):
 
 
 if __name__ == "__main__":
-    path = '/Users/wangweiran/Desktop/SemesterProject/EPFL_Network_Calculus_Semester_Project/DeepFP_gnn-main/src/extraction/source-sink.pbz'
+    source_sink_pbz_path = '/Users/wangweiran/Desktop/SemesterProject/EPFL_Network_Calculus_Semester_Project/Network_analysis/extraction/source-sink.pbz'
+    path = source_sink_pbz_path
     main(path);
