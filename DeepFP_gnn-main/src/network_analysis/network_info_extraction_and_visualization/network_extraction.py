@@ -91,7 +91,7 @@ def info_extraction(i, network):
     # the basic information of a network is the same
     # the dest will change according to different foi
     for foi_index in foi:
-        prolonged_network = next(pbzlib.open_pbz(main_path + "/Network_analysis/source_sink_prolongation_pbz/source_sink_tandem_" + str(i) + ".pbz"))
+        prolonged_network = next(pbzlib.open_pbz(main_path + "Network_Information_and_Analysis/source_sink_prolongation_pbz/source_sink_tandem_" + str(i) + ".pbz"))
         # the src doesn't change
         # the destination may change according to the GNN flow prolongation
         for path in flows_paths:
@@ -106,7 +106,7 @@ def info_extraction(i, network):
                 flow_of_interest.append(-1)
 
     # create a csv file for server
-    path_server = main_path + 'Network_analysis/server_info/'
+    path_server = main_path + 'Network_Information_and_Analysis/server_info/'
     filename_server = 'topology' + topology_id + '_server.csv'
     print('filename = ', path_server + filename_server)
 
@@ -120,7 +120,7 @@ def info_extraction(i, network):
             server_csv.writerow([topology_id, servers_id[j], servers_rates[j], servers_latency[j]])
 
     # create a csv file for flow
-    path_flow = main_path + 'Network_analysis/flow_info/'
+    path_flow = main_path + 'Network_Information_and_Analysis/flow_info/'
     filename_flow = 'topology' + topology_id + '_flow.csv'
     print('file_name = ', path_flow + filename_flow)
 
@@ -143,6 +143,6 @@ def main(path):
 
 
 if __name__ == "__main__":
-    source_sink_pbz_path = '/Users/wangweiran/Desktop/SemesterProject/EPFL_Network_Calculus_Semester_Project/Network_analysis/extraction/source-sink.pbz'
+    source_sink_pbz_path = '/Users/wangweiran/Desktop/SemesterProject/EPFL_Network_Calculus_Semester_Project/DeepFP_gnn-main/src/network_analysis/source_sink_tandem_generation/source-sink.pbz'
     path = source_sink_pbz_path
     main(path);

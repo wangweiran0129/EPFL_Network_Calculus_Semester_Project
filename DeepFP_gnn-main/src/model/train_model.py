@@ -3,7 +3,7 @@ import pickle
 from scipy.sparse import coo_matrix
 import numpy as np
 from tqdm import tqdm
-from .gnn import *
+from model.gnn import *
 import random
 
 def train_model(model, train_graphs, train_targets, test_graphs, test_targets, learning_rate, epochs, dropout=0.2):
@@ -213,7 +213,6 @@ def compute_correct_solutions(output_prolongations, target_prolongations):
 
 def create_output_vector(pro_nodes, out_prol, number_of_combinations=1):
     """
-
     :param pro_nodes:
     :param out_prol: the output of prolongation nodes
     :param number_of_combinations: the number of predictions to generate, e.g 4 for DeepFP4
@@ -277,4 +276,22 @@ def prepare_adjacency_matrix(batch):
     return adj
 
 
+def main():
 
+    model = GGNN(9, 96, unrolls=2)
+    train_graphs_path = "/Users/wangweiran/Desktop/SemesterProject/EPFL_Network_Calculus_Semester_Project/DeepFP_gnn-main/train_graphs.pickle"
+    train_targets_path = "/Users/wangweiran/Desktop/SemesterProject/EPFL_Network_Calculus_Semester_Project/DeepFP_gnn-main/train_targets.pickle"
+    test_graphs_path = "/Users/wangweiran/Desktop/SemesterProject/EPFL_Network_Calculus_Semester_Project/DeepFP_gnn-main/test_graphs.pickle"
+    test_targets_path = "/Users/wangweiran/Desktop/SemesterProject/EPFL_Network_Calculus_Semester_Project/DeepFP_gnn-main/test_targets.pickle"
+
+    model, losses_per_epoch = train_model(model= model, train_graphs= train_graphs_path, train_targets= train_targets_path,\
+           test_graphs= test_graphs_path, test_targets= test_targets_path, learning_rate= 0.05, epochs= 30 )
+
+    print("model : ", model)
+    print("losses_per_epoch : ", losses_per_epoch)
+    
+    torch.save(model, "ggnn.pt")
+
+
+if __name__ == "__main__":
+    main()

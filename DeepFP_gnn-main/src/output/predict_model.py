@@ -111,13 +111,13 @@ def write_network(network, flows_start_sink, filename):
 
 
 def get_flowid_from_prolongation_node_name(s):
-    flow = int(re.search(r"\d+", s).group())
-    #flow = int(s[s.index("_") - 1])
+    # flow = int(re.search(r"\d+", s).group())
+    flow = int(s[s.index("_") - 1])
     return flow
 
 
 def get_serverid_from_prolongation_node_name(s):
-    server_temp = re.search(r"_\d+", s).group()
-    server = int(re.search(r"\d+", server_temp).group())
-    # server = int(s[s.index("_") + 1])
+    # server_temp = re.search(r"_\d+", s).group()
+    # server = int(re.search(r"\d+", server_temp).group())
+    server = int(s[s.index("_") + 1])
     return server

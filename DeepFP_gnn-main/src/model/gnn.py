@@ -93,10 +93,10 @@ class GGNN(nn.Module):
 
 def prepare_edge_attention_input(feature_matrix):
     """
-        Method to prepare the input for the edge attention layer by concatenating neighboring nodes feature vectors
-        :param feature_matrix: torch tensor of the data of shape N x D
-        :return: torch tensor of shape N x N x (2*D)
-        """
+    Method to prepare the input for the edge attention layer by concatenating neighboring nodes feature vectors
+    :param feature_matrix: torch tensor of the data of shape N x D
+    :return: torch tensor of shape N x N x (2*D)
+    """
     # Number of nodes
     N = feature_matrix.shape[0]
 
