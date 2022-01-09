@@ -1,4 +1,0 @@
-topology_id,server_id,server_rate,server_latency
-2,0,10.0,0.001
-2,1,10.0,0.001
-2,2,10.0,0.001
