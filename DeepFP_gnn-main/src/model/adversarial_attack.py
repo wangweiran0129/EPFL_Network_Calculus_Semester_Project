@@ -137,8 +137,9 @@ def evaluate_attack(model, test_graphs, test_targets, update_max_norm):
 def accuracy_visualization(epsilons, accuracy_deepfp, accuracy_deepfp4):
     """
     visualize the accurcy vs epsilons
-    :param: epsilons list
-    :param: accuracies value
+    :param epsilons: epsilons list
+    :param accuracy_deepfp: accuracy of deepfp
+    :param accuracy_deepfp4: accuracy of deepfp4
     """
     fig, ax = plt.subplots()
     ax.plot(epsilons, accuracy_deepfp, marker='o', label='deepfp')
