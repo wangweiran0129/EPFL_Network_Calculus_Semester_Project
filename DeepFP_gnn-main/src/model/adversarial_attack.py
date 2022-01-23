@@ -134,14 +134,12 @@ def evaluate_attack(model, test_graphs, test_targets, update_max_norm):
     return accuracy_deepfp, accuracy_deepfp4
 
 
-def accuracy_visualization(epsilons, acc):
+def accuracy_visualization(epsilons, accuracy_deepfp, accuracy_deepfp4):
     """
     visualize the accurcy vs epsilons
     :param: epsilons list
     :param: accuracies value
     """
-    accuracy_deepfp = [i[0] for i in acc]
-    accuracy_deepfp4 = [i[1] for i in acc]
     fig, ax = plt.subplots()
     ax.plot(epsilons, accuracy_deepfp, marker='o', label='deepfp')
     ax.plot(epsilons, accuracy_deepfp4, marker='*', label='deepfp4')
@@ -158,7 +156,8 @@ def main():
     # load model
     model = torch.load("/Users/wangweiran/Desktop/SemesterProject/EPFL_Network_Calculus_Semester_Project/DeepFP_gnn-main/src/model/ggnn_learning_rate_5e4.pt", map_location=torch.device("cpu"))
 
-    accuracies = []
+    accuracy_deepfp = []
+    accuracy_deepfp4 = []
     # 0 represents the model performance on the original test set.
     epsilons = [0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3]
 
@@ -168,13 +167,15 @@ def main():
     # Run test for each epsilon
     for eps in tqdm(epsilons):
         print("eps : ", eps)
-        acc = evaluate_attack(model, test_graphs, test_targets, eps)
-        accuracies.append(acc)
+        acc_deepfp, acc_deepfp4 = evaluate_attack(model, test_graphs, test_targets, eps)
+        accuracy_deepfp.append(acc_deepfp)
+        accuracy_deepfp4.append(acc_deepfp4)
     
-    print("accuracies : ", accuracies)
+    print("deepfp accuracy : ", accuracy_deepfp)
+    print("deepfp4 accuracy : ", accuracy_deepfp4)
 
     # visualize the result
-    accuracy_visualization(epsilons, acc)
+    accuracy_visualization(epsilons, accuracy_deepfp, accuracy_deepfp4)
 
 
 if __name__ == "__main__":
